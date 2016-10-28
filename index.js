@@ -11,9 +11,10 @@ function googleDriveManager(mainSpecs) {
             var fileSet = [];
             var request = {
                 auth: auth,
-                pageSize: 100,
+                pageSize: 500,
                 fields: "nextPageToken, files(id, name, permissions, mimeType, trashed)"
             };
+
             if (specs.q) {
                 request.q = specs.q;
             }
@@ -31,12 +32,19 @@ function googleDriveManager(mainSpecs) {
                     files.forEach(function (file) {
                         fileSet.push(file);
                     });
+                    if (fileSet.length % 5000 === 0) {
+                        console.log("working:fetched %d files for %s", fileSet.length, specs.user);
+                    }
+
                     if (files.length === 0) {
+                        console.log("done:fetched %d files for %s", fileSet.length, specs.user);
                         resolve(fileSet);
                         return;
                     }
                     if (!response.nextPageToken) {
                         resolve(fileSet);
+                         console.log("done:fetched %d files for %s", fileSet.length, specs.user);
+                      
                         return;
                     }
                     listFiles(response.nextPageToken);
