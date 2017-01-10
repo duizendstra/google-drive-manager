@@ -1,4 +1,5 @@
 var google = require('googleapis');
+var retry = require('retry');
 
 function googleDriveManager(mainSpecs) {
     "use strict";
@@ -26,31 +27,48 @@ function googleDriveManager(mainSpecs) {
                 if (pageToken) {
                     request.pageToken = pageToken;
                 }
-                service.files.list(request, function (err, response) {
-                    if (err) {
-                        reject('The API returned an error: ' + err);
-                        return;
-                    }
-                    var files = response.files;
-                    files.forEach(function (file) {
-                        fileSet.push(file);
+                var operation = retry.operation({
+                    retries: 5,
+                    factor: 3,
+                    minTimeout: 1 * 1000,
+                    maxTimeout: 60 * 1000,
+                    randomize: true
+                });
+
+                operation.attempt(function (currentAttempt) {
+                    service.files.list(request, function (err, response) {
+                        if (operation.retry(err)) {
+                            console.log("Error " + err.code + " retrieving files, retry " + operation.attempts());
+                            console.log(err.code);
+                            // reject(err);
+                            return;
+                        }
+                        if (err) {
+                            reject('The API returned an error: ' + err);
+                            return;
+                        }
+                        var files = response.files;
+                        files.forEach(function (file) {
+                            fileSet.push(file);
+                            if (fileSet.length % 1000 === 0) {
+                                console.log("working:fetched %d files for %s", fileSet.length, specs.user);
+                            }
+                        });
+
+
+                        if (files.length === 0) {
+                            console.log("done:fetched %d files for %s", fileSet.length, specs.user);
+                            resolve(fileSet);
+                            return;
+                        }
+                        if (!response.nextPageToken) {
+                            resolve(fileSet);
+                            console.log("done:fetched %d files for %s", fileSet.length, specs.user);
+
+                            return;
+                        }
+                        listFiles(response.nextPageToken);
                     });
-                    if (fileSet.length % 5000 === 0) {
-                        console.log("working:fetched %d files for %s", fileSet.length, specs.user);
-                    }
-
-                    if (files.length === 0) {
-                        console.log("done:fetched %d files for %s", fileSet.length, specs.user);
-                        resolve(fileSet);
-                        return;
-                    }
-                    if (!response.nextPageToken) {
-                        resolve(fileSet);
-                        console.log("done:fetched %d files for %s", fileSet.length, specs.user);
-
-                        return;
-                    }
-                    listFiles(response.nextPageToken);
                 });
             }
             listFiles();
@@ -75,12 +93,26 @@ function googleDriveManager(mainSpecs) {
                 request.fields = specs.fields;
             }
 
-            service.files.create(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            var operation = retry.operation({
+                retries: 5,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function (currentAttempt) {
+                service.files.create(request, function (err, response) {
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
             });
         });
     }
@@ -91,20 +123,52 @@ function googleDriveManager(mainSpecs) {
             var fileId = specs.fileId;
             var request = {
                 auth: auth,
-                fileId: fileId
+                fileId: fileId,
+                resource: {}
             };
 
             if (specs.fields) {
                 request.fields = specs.fields;
             }
 
-            service.files.copy(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            if (specs.name) {
+                request.resource.name = specs.name;
+            }
+
+            if (specs.parents) {
+                request.resource.parents = specs.parents;
+            }
+
+
+            var operation = retry.operation({
+                retries: 6,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
             });
+
+            operation.attempt(function (currentAttempt) {
+                service.files.copy(request, function (err, response) {
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
+            });
+
+            // service.files.copy(request, function (err, response) {
+            //     if (err) {
+            //         reject(err);
+            //         return;
+            //     }
+            //     resolve(response);
+            // });
         });
     }
 
@@ -115,16 +179,14 @@ function googleDriveManager(mainSpecs) {
             var request = {
                 auth: auth,
                 fileId: fileId,
-                resource: {
-                    addParents: newParents
-                }
+                addParents: newParents.join(",")
             };
 
             if (specs.fields) {
                 request.fields = specs.fields;
             }
 
-            service.files.copy(request, function (err, response) {
+            service.files.update(request, function (err, response) {
                 if (err) {
                     reject(err);
                     return;
@@ -145,13 +207,34 @@ function googleDriveManager(mainSpecs) {
             if (specs.fields) {
                 request.fields = specs.fields;
             }
+            var operation = retry.operation({
+                retries: 6,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
 
-            service.permissions.list(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            operation.attempt(function (currentAttempt) {
+
+                service.permissions.list(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts())
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
             });
         });
     }
@@ -167,8 +250,9 @@ function googleDriveManager(mainSpecs) {
             var request = {
                 auth: auth,
                 fileId: fileId,
-                permissionId: permissionId,
+               // permissionId: permissionId,
                 transferOwnership: transferOwnership,
+               // sendNotificationEmail: false,
                 resource: {
                     role: role,
                     emailAddress: emailAddress,
@@ -180,12 +264,33 @@ function googleDriveManager(mainSpecs) {
                 request.fields = specs.fields;
             }
 
-            service.permissions.create(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            var operation = retry.operation({
+                retries: 5,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+            operation.attempt(function (currentAttempt) {
+                service.permissions.create(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d %s", err.code, operation.attempts())
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                        
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
             });
         });
     }
@@ -211,16 +316,98 @@ function googleDriveManager(mainSpecs) {
                 request.fields = specs.fields;
             }
 
-            service.permissions.update(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            if (permissionId === undefined) {
+                reject("missing a permission id");
+                return;
+            }
+
+            var operation = retry.operation({
+                retries: 6,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
             });
+
+            operation.attempt(function (currentAttempt) {
+                service.permissions.update(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts())
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
+            });
+
         });
     }
 
+
+    function removeAllPermissionsAndTransferOwnership(specs) {
+
+    }
+
+    function deletePermission(specs) {
+        return new Promise(function (resolve, reject) {
+            var fileId = specs.fileId;
+            var permissionId = specs.permissionId;
+            var request = {
+                auth: auth,
+                fileId: fileId,
+                permissionId: permissionId
+            };
+
+            if (permissionId === undefined) {
+                reject("missing a permission id");
+                return;
+            }
+
+            var operation = retry.operation({
+                retries: 5,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function (currentAttempt) {
+                service.permissions.delete(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (err && err.code === 404) {
+                        resolve();
+                        return;
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message)
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
+            });
+
+        });
+    }
 
     auth = mainSpecs.auth;
     return {
@@ -230,7 +417,9 @@ function googleDriveManager(mainSpecs) {
         updatePermission: updatePermission,
         addPermission: addPermission,
         createFile: createFile,
-        addParents: addParents
+        addParents: addParents,
+        deletePermission: deletePermission,
+        removeAllPermissionsAndTransferOwnership: removeAllPermissionsAndTransferOwnership
     };
 }
 
