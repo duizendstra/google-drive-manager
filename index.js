@@ -67,7 +67,7 @@ function googleDriveManager(mainSpecs) {
                         var files = response.files;
                         files.forEach(function (file) {
                             fileSet.push(file);
-                            if (fileSet.length % 100 === 0) {
+                            if (fileSet.length % 1000 === 0) {
                                 console.log("working:fetched %d files for %s", fileSet.length, specs.user);
                             }
                         });
