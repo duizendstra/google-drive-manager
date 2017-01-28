@@ -370,6 +370,54 @@ function googleDriveManager(mainSpecs) {
         });
     }
 
+    function update(specs) {
+        return new Promise(function (resolve, reject) {
+            var fileId = specs.fileId;
+            var request = {
+                auth: auth,
+                fileId: fileId,
+                resource: specs.resource
+            };
+
+            var operation = retry.operation({
+                retries: 5,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function (currentAttempt) {
+                service.files.update(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (err && err.code === 404) {
+                        resolve();
+                        return;
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
+            });
+
+        });
+
+
+
+    }
+
     function deletePermission(specs) {
         return new Promise(function (resolve, reject) {
             var fileId = specs.fileId;
@@ -419,6 +467,9 @@ function googleDriveManager(mainSpecs) {
             });
 
         });
+
+
+
     }
 
     auth = mainSpecs.auth;
@@ -431,7 +482,8 @@ function googleDriveManager(mainSpecs) {
         createFile: createFile,
         addParents: addParents,
         deletePermission: deletePermission,
-        about: about
+        about: about,
+        update: update
     };
 }
 
