@@ -6,6 +6,23 @@ function googleDriveManager(mainSpecs) {
     var auth;
     var service = google.drive('v3');
 
+    function about() {
+        return new Promise(function (resolve, reject) {
+            var request = {
+                auth: auth,
+                fields: "user(permissionId)"
+            };
+
+            service.about.get(request, function (err, response) {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(response);
+            });
+        });
+    }
+
     function getFiles(specs) {
 
         return new Promise(function (resolve, reject) {
@@ -413,7 +430,8 @@ function googleDriveManager(mainSpecs) {
         addPermission: addPermission,
         createFile: createFile,
         addParents: addParents,
-        deletePermission: deletePermission
+        deletePermission: deletePermission,
+        about: about
     };
 }
 
