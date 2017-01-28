@@ -50,7 +50,7 @@ function googleDriveManager(mainSpecs) {
                         var files = response.files;
                         files.forEach(function (file) {
                             fileSet.push(file);
-                            if (fileSet.length % 1000 === 0) {
+                            if (fileSet.length % 100 === 0) {
                                 console.log("working:fetched %d files for %s", fileSet.length, specs.user);
                             }
                         });
@@ -220,13 +220,13 @@ function googleDriveManager(mainSpecs) {
                 service.permissions.list(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
-                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
                             reject(err);
                             return;
                         }
                     }
                     if (operation.retry(err)) {
-                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts())
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
                         return;
                     }
                     if (err) {
@@ -250,9 +250,9 @@ function googleDriveManager(mainSpecs) {
             var request = {
                 auth: auth,
                 fileId: fileId,
-               // permissionId: permissionId,
+                // permissionId: permissionId,
                 transferOwnership: transferOwnership,
-               // sendNotificationEmail: false,
+                // sendNotificationEmail: false,
                 resource: {
                     role: role,
                     emailAddress: emailAddress,
@@ -275,14 +275,14 @@ function googleDriveManager(mainSpecs) {
                 service.permissions.create(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
-                            console.log("Error, error %s occured, retry %d %s", err.code, operation.attempts())
+                            console.log("Error, error %s occured, retry %d %s", err.code, operation.attempts());
                             reject(err);
                             return;
                         }
                     }
                     if (operation.retry(err)) {
                         console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
-                        
+
                         return;
                     }
                     if (err) {
@@ -333,13 +333,13 @@ function googleDriveManager(mainSpecs) {
                 service.permissions.update(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
-                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
                             reject(err);
                             return;
                         }
                     }
                     if (operation.retry(err)) {
-                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts())
+                        console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
                         return;
                     }
                     if (err) {
@@ -351,11 +351,6 @@ function googleDriveManager(mainSpecs) {
             });
 
         });
-    }
-
-
-    function removeAllPermissionsAndTransferOwnership(specs) {
-
     }
 
     function deletePermission(specs) {
@@ -385,7 +380,7 @@ function googleDriveManager(mainSpecs) {
                 service.permissions.delete(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
-                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts())
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
                             reject(err);
                             return;
                         }
@@ -395,7 +390,7 @@ function googleDriveManager(mainSpecs) {
                         return;
                     }
                     if (operation.retry(err)) {
-                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message)
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
                         return;
                     }
                     if (err) {
@@ -418,8 +413,7 @@ function googleDriveManager(mainSpecs) {
         addPermission: addPermission,
         createFile: createFile,
         addParents: addParents,
-        deletePermission: deletePermission,
-        removeAllPermissionsAndTransferOwnership: removeAllPermissionsAndTransferOwnership
+        deletePermission: deletePermission
     };
 }
 
