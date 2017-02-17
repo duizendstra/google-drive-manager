@@ -1,7 +1,7 @@
 {
-  "name": "google-user-manager",
+  "name": "google-drive-manager",
   "version": "0.0.4",
-  "description": "wrapper for the google admin sdk user api",
+  "description": "A wrapper for the google drive SDK",
   "main": "index.js",
   "dependencies": {
     "google-auth-library": "^0.9.9",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/duizendstra/google-user-manager.git"
+    "url": "git+https://github.com/duizendstra/google-drive-manager.git"
   },
   "keywords": [
     "google",
@@ -22,7 +22,7 @@
   "author": "Jasper Duizendstra <jasper@duizendstra.com> (www.duizendstra.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duizendstra/google-user-manager/issues"
+    "url": "https://github.com/duizendstra/google-drive-manager/issues"
   },
-  "homepage": "https://github.com/duizendstra/google-user-manager#readme"
+  "homepage": "https://github.com/duizendstra/google-drive-manager#readme"
 }

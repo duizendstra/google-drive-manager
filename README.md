@@ -1,15 +1,15 @@
-Google group manager
+Google drive manager
 =========
 
-A wrapper for the google admin SDK user API
+A wrapper for the google drive SDK
 
 ## Installation
 
-  `npm install google-user-manager`
+  `npm install google-drive-manager`
 
 ## Usage
 
-    var userManager = googleUserManager({
+    var driveManager = googleDriveManager({
         auth: auth
     });
   
