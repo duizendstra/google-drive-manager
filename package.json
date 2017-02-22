@@ -1,11 +1,12 @@
 {
-  "name": "google-drive-manager",
-  "version": "0.0.4",
+  "name": "google-drive-api-manager",
+  "version": "0.0.7",
   "description": "A wrapper for the google drive SDK",
   "main": "index.js",
   "dependencies": {
-    "google-auth-library": "^0.9.9",
-    "googleapis": "^14.1.0"
+    "google-auth-library": "^0.10.0",
+    "googleapis": "^16.1.0",
+    "retry":"^0.10.1"
   },
   "devDependencies": {},
   "scripts": {

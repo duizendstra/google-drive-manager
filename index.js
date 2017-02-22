@@ -23,6 +23,30 @@ function googleDriveManager(mainSpecs) {
         });
     }
 
+    function download(specs) {
+
+        return new Promise(function (resolve, reject) {
+            var fileId = specs.fileId;
+            var dest = specs.dest;
+            var request = {
+                auth: auth,
+                fileId: fileId,
+                alt: 'media'
+            };
+
+            service.files.get(request)
+                .on('end', function (response) {
+                    console.log('Done');
+                    resolve(response);
+                })
+                .on('error', function (err) {
+                    console.log('Error during download', err);
+                    reject(err);
+                })
+                .pipe(dest);
+        });
+    }
+
     function getFiles(specs) {
 
         return new Promise(function (resolve, reject) {
@@ -483,7 +507,8 @@ function googleDriveManager(mainSpecs) {
         addParents: addParents,
         deletePermission: deletePermission,
         about: about,
-        update: update
+        update: update,
+        download: download
     };
 }
 

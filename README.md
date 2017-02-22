@@ -5,7 +5,7 @@ A wrapper for the google drive SDK
 
 ## Installation
 
-  `npm install google-drive-manager`
+  `npm install google-drive-api-manager`
 
 ## Usage
 
