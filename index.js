@@ -96,8 +96,7 @@ function googleDriveManager(mainSpecs) {
                             }
                         });
 
-
-                        if (files.length === 0) {
+                        if (files.length === 0 && !response.nextPageToken) {
                             console.log("done:fetched %d files for %s", fileSet.length, specs.user);
                             resolve(fileSet);
                             return;
