@@ -1,6 +1,6 @@
 {
   "name": "google-drive-api-manager",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A wrapper for the google drive SDK",
   "main": "index.js",
   "dependencies": {
