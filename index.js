@@ -495,6 +495,31 @@ function googleDriveManager(mainSpecs) {
 
     }
 
+    function setProperties(specs) {
+        console.log("setProperties " + JSON.stringify(specs));
+        return new Promise(function (resolve, reject) {
+            var fileId = specs.fileId;
+            var properties = JSON.parse(specs.properties);
+            var request = {
+                auth: auth,
+                fileId: fileId,
+                resource: {
+                    properties: properties
+                },
+                fields: "id,parents,properties"
+            };
+
+            service.files.update(request, function (err, response) {
+                console.log("setProperties");
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(response);
+            });
+        });
+    }
+
     auth = mainSpecs.auth;
     return {
         getFiles: getFiles,
@@ -507,7 +532,8 @@ function googleDriveManager(mainSpecs) {
         deletePermission: deletePermission,
         about: about,
         update: update,
-        download: download
+        download: download,
+        setProperties: setProperties
     };
 }
 
