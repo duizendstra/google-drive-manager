@@ -509,13 +509,27 @@ function googleDriveManager(mainSpecs) {
                 fields: "id,parents,properties"
             };
 
-            service.files.update(request, function (err, response) {
-                console.log("setProperties");
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+            var operation = retry.operation({
+                retries: 6,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function (currentAttempt) {
+                service.files.update(request, function (err, response) {
+                    console.log("setProperties");
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
             });
         });
     }
