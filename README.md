@@ -1,15 +1,15 @@
-Google drive manager
+G suite drive manager
 =========
 
-A wrapper for the google drive SDK
+A wrapper for the G Suite drive SDK
 
 ## Installation
 
-  `npm install google-drive-api-manager`
+  `npm install gsuite-drive-manager`
 
 ## Usage
 
-    var driveManager = googleDriveManager({
+    var driveManager = gsuiteDriveManager({
         auth: auth
     });
   

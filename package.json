@@ -1,7 +1,7 @@
 {
-  "name": "google-drive-api-manager",
-  "version": "0.0.8",
-  "description": "A wrapper for the google drive SDK",
+  "name": "gsuite-drive-manager",
+  "version": "0.0.1",
+  "description": "A wrapper for the G suite drive SDK",
   "main": "index.js",
   "dependencies": {
     "google-auth-library": "^0.10.0",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/duizendstra/google-drive-manager.git"
+    "url": "git+https://github.com/duizendstra/gsuite-drive-manager.git"
   },
   "keywords": [
     "google",
@@ -23,7 +23,7 @@
   "author": "Jasper Duizendstra <jasper@duizendstra.com> (www.duizendstra.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duizendstra/google-drive-manager/issues"
+    "url": "https://github.com/duizendstra/gsuite-drive-manager/issues"
   },
-  "homepage": "https://github.com/duizendstra/google-drive-manager#readme"
+  "homepage": "https://github.com/duizendstra/gsuite-drive-manager#readme"
 }

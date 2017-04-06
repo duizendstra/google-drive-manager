@@ -1,7 +1,7 @@
 var google = require('googleapis');
 var retry = require('retry');
 
-function googleDriveManager(mainSpecs) {
+function gsuiteDriveManager(mainSpecs) {
     "use strict";
     var auth;
     var service = google.drive('v3');
@@ -537,4 +537,4 @@ function googleDriveManager(mainSpecs) {
     };
 }
 
-module.exports = googleDriveManager;
+module.exports = gsuiteDriveManager;
