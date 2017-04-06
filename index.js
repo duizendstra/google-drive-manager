@@ -50,9 +50,9 @@ function gsuiteDriveManager(mainSpecs) {
                 var dest = fs.createWriteStream(path);
                 service.files.get(request, function (errortje) {
                     if (operation.retry(errortje)) {
-                            console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
-                        }
-                    })
+                        console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
+                    }
+                })
                     .on('error', function (err) {
 
                         if (operation.retry(err)) {
