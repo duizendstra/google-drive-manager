@@ -1,7 +1,8 @@
 var google = require('googleapis');
 var retry = require('retry');
+var fs = require("fs");
 
-function googleDriveManager(mainSpecs) {
+function gsuiteDriveManager(mainSpecs) {
     "use strict";
     var auth;
     var service = google.drive('v3');
@@ -27,24 +28,69 @@ function googleDriveManager(mainSpecs) {
 
         return new Promise(function (resolve, reject) {
             var fileId = specs.fileId;
-            var dest = specs.dest;
+            var path = specs.path;
             var request = {
                 auth: auth,
                 fileId: fileId,
                 alt: 'media'
             };
 
-            service.files.get(request)
-                .on('end', function (response) {
-                    console.log('Done');
-                    resolve(response);
-                })
-                .on('error', function (err) {
-                    console.log('Error during download', err);
-                    reject(err);
-                })
-                .pipe(dest);
+            var operation = retry.operation({
+                retries: 6,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function (currentAttempt) {
+//                throw new Error();
+                var dest = fs.createWriteStream(path);
+                service.files.get(request,
+                     function(errortje) {
+                         if (operation.retry(errortje)){
+                             console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
+                         }
+                     }
+                    )
+                    .on('end', function (response) {
+//                        console.log('Done on get %s', path);
+//                        resolve(response);
+                    })
+                    .on('error', function (err) {
+
+                        if (operation.retry(err)) {
+                            console.log("Warning On Error, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                            return;
+                        }
+
+                        if (err) {
+                            console.log('Error during download', err);
+                            reject(err); 
+                        }
+
+                    })
+                    .pipe(dest)
+                    .on('finish', function (response) {
+                        console.log('Saved %s', path);
+                        resolve(response);
+                    })
+                    .on('error', function (err) {
+
+                        if (operation.retry(err)) {
+                            console.log("Pipe Warning On Error, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                            return;
+                        }
+
+                        if (err) {
+                            console.log('Pipe Error during download', err);
+                            reject(err); 
+                        }
+
+                    });
+                });
         });
+
     }
 
     function getFiles(specs) {
@@ -80,7 +126,7 @@ function googleDriveManager(mainSpecs) {
                     service.files.list(request, function (err, response) {
                         if (operation.retry(err)) {
                             console.log("Error " + err.code + " retrieving files, retry " + operation.attempts());
-                            console.log(err.code);
+                            //console.log(err.code);
                             // reject(err);
                             return;
                         }
@@ -496,7 +542,7 @@ function googleDriveManager(mainSpecs) {
     }
 
     function setProperties(specs) {
-        console.log("setProperties " + JSON.stringify(specs));
+        // console.log("setProperties " + JSON.stringify(specs));
         return new Promise(function (resolve, reject) {
             var fileId = specs.fileId;
             var properties = JSON.parse(specs.properties);
@@ -519,9 +565,9 @@ function googleDriveManager(mainSpecs) {
 
             operation.attempt(function (currentAttempt) {
                 service.files.update(request, function (err, response) {
-                    console.log("setProperties");
+                    //  console.log("setProperties");
                     if (operation.retry(err)) {
-                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                        console.log("Warning, error %s occured, retry %d, %s setProperties", err.code, operation.attempts(), err.message);
                         return;
                     }
                     if (err) {
@@ -551,4 +597,4 @@ function googleDriveManager(mainSpecs) {
     };
 }
 
-module.exports = googleDriveManager;
+module.exports = gsuiteDriveManager;
