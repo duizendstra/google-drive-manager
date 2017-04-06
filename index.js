@@ -1,3 +1,5 @@
+/*global require, console, Promise*/
+/*jslint node: true */
 var google = require('googleapis');
 var retry = require('retry');
 var fs = require("fs");
@@ -43,19 +45,13 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
-//                throw new Error();
+            operation.attempt(function () {
+                //                throw new Error();
                 var dest = fs.createWriteStream(path);
-                service.files.get(request,
-                     function(errortje) {
-                         if (operation.retry(errortje)){
-                             console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
-                         }
-                     }
-                    )
-                    .on('end', function (response) {
-//                        console.log('Done on get %s', path);
-//                        resolve(response);
+                service.files.get(request, function (errortje) {
+                    if (operation.retry(errortje)) {
+                            console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
+                        }
                     })
                     .on('error', function (err) {
 
@@ -66,7 +62,7 @@ function gsuiteDriveManager(mainSpecs) {
 
                         if (err) {
                             console.log('Error during download', err);
-                            reject(err); 
+                            reject(err);
                         }
 
                     })
@@ -84,11 +80,11 @@ function gsuiteDriveManager(mainSpecs) {
 
                         if (err) {
                             console.log('Pipe Error during download', err);
-                            reject(err); 
+                            reject(err);
                         }
 
                     });
-                });
+            });
         });
 
     }
@@ -122,7 +118,7 @@ function gsuiteDriveManager(mainSpecs) {
                     randomize: true
                 });
 
-                operation.attempt(function (currentAttempt) {
+                operation.attempt(function () {
                     service.files.list(request, function (err, response) {
                         if (operation.retry(err)) {
                             console.log("Error " + err.code + " retrieving files, retry " + operation.attempts());
@@ -187,7 +183,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.files.create(request, function (err, response) {
                     if (operation.retry(err)) {
                         console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
@@ -234,7 +230,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.files.copy(request, function (err, response) {
                     if (operation.retry(err)) {
                         console.log("Warning, error %s occured, retry %d", err.code, operation.attempts());
@@ -301,7 +297,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
 
                 service.permissions.list(request, function (err, response) {
                     if (err && err.code === 403) {
@@ -328,7 +324,6 @@ function gsuiteDriveManager(mainSpecs) {
     function addPermission(specs) {
         return new Promise(function (resolve, reject) {
             var fileId = specs.fileId;
-            var permissionId = specs.permissionId;
             var transferOwnership = specs.transferOwnership;
             var role = specs.role;
             var emailAddress = specs.emailAddress;
@@ -357,7 +352,7 @@ function gsuiteDriveManager(mainSpecs) {
                 maxTimeout: 60 * 1000,
                 randomize: true
             });
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.permissions.create(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
@@ -415,7 +410,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.permissions.update(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
@@ -456,7 +451,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.files.update(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
@@ -510,7 +505,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.permissions.delete(request, function (err, response) {
                     if (err && err.code === 403) {
                         if (err.message === "The user does not have sufficient permissions for this file.") {
@@ -563,7 +558,7 @@ function gsuiteDriveManager(mainSpecs) {
                 randomize: true
             });
 
-            operation.attempt(function (currentAttempt) {
+            operation.attempt(function () {
                 service.files.update(request, function (err, response) {
                     //  console.log("setProperties");
                     if (operation.retry(err)) {
