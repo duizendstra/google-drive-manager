@@ -12,8 +12,6 @@ A wrapper for the G Suite drive SDK
     var driveManager = gsuiteDriveManager({
         auth: auth
     });
-  
-  
 
 ## Tests
 
