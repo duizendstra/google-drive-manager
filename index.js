@@ -1,17 +1,17 @@
 /*global require, console, Promise*/
 /*jslint node: true */
-var google = require('googleapis');
-var retry = require('retry');
-var fs = require("fs");
+let google = require('googleapis');
+let retry = require('retry');
+let fs = require("fs");
 
 function gsuiteDriveManager(mainSpecs) {
     "use strict";
-    var auth;
-    var service = google.drive('v3');
+    let auth;
+    let service = google.drive('v3');
 
     function about() {
         return new Promise(function (resolve, reject) {
-            var request = {
+            let request = {
                 auth: auth,
                 fields: "user(permissionId)"
             };
@@ -29,15 +29,15 @@ function gsuiteDriveManager(mainSpecs) {
     function download(specs) {
 
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var path = specs.path;
-            var request = {
+            let fileId = specs.fileId;
+            let path = specs.path;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 alt: 'media'
             };
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 6,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -47,12 +47,12 @@ function gsuiteDriveManager(mainSpecs) {
 
             operation.attempt(function () {
                 //                throw new Error();
-                var dest = fs.createWriteStream(path);
+                let dest = fs.createWriteStream(path);
                 service.files.get(request, function (errortje) {
-                    if (operation.retry(errortje)) {
-                        console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
-                    }
-                })
+                        if (operation.retry(errortje)) {
+                            console.log("Warning, error %s occured, retry %d, %s, file: %s", errortje.code, operation.attempts(), errortje.message, path);
+                        }
+                    })
                     .on('error', function (err) {
 
                         if (operation.retry(err)) {
@@ -92,8 +92,8 @@ function gsuiteDriveManager(mainSpecs) {
     function getFiles(specs) {
 
         return new Promise(function (resolve, reject) {
-            var fileSet = [];
-            var request = {
+            let fileSet = [];
+            let request = {
                 auth: auth,
                 pageSize: 500
             };
@@ -110,7 +110,7 @@ function gsuiteDriveManager(mainSpecs) {
                 if (pageToken) {
                     request.pageToken = pageToken;
                 }
-                var operation = retry.operation({
+                let operation = retry.operation({
                     retries: 5,
                     factor: 3,
                     minTimeout: 1 * 1000,
@@ -130,7 +130,7 @@ function gsuiteDriveManager(mainSpecs) {
                             reject('The API returned an error: ' + err);
                             return;
                         }
-                        var files = response.files;
+                        let files = response.files;
                         files.forEach(function (file) {
                             fileSet.push(file);
                             if (fileSet.length % 1000 === 0) {
@@ -159,10 +159,10 @@ function gsuiteDriveManager(mainSpecs) {
 
     function createFile(specs) {
         return new Promise(function (resolve, reject) {
-            var name = specs.name;
-            var mimeType = specs.mimeType;
-            var parents = specs.parents;
-            var request = {
+            let name = specs.name;
+            let mimeType = specs.mimeType;
+            let parents = specs.parents;
+            let request = {
                 auth: auth,
                 resource: {
                     name: name,
@@ -175,7 +175,7 @@ function gsuiteDriveManager(mainSpecs) {
                 request.fields = specs.fields;
             }
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 5,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -202,8 +202,8 @@ function gsuiteDriveManager(mainSpecs) {
     function copy(specs) {
 
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var request = {
+            let fileId = specs.fileId;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 resource: {}
@@ -222,7 +222,7 @@ function gsuiteDriveManager(mainSpecs) {
             }
 
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 6,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -256,9 +256,9 @@ function gsuiteDriveManager(mainSpecs) {
 
     function addParents(specs) {
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var newParents = specs.newParents;
-            var request = {
+            let fileId = specs.fileId;
+            let newParents = specs.newParents;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 addParents: newParents.join(",")
@@ -278,10 +278,11 @@ function gsuiteDriveManager(mainSpecs) {
         });
     }
 
+    // Permissions section
     function getPermissions(specs) {
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var request = {
+            let fileId = specs.fileId;
+            let request = {
                 auth: auth,
                 fileId: fileId
             };
@@ -289,7 +290,7 @@ function gsuiteDriveManager(mainSpecs) {
             if (specs.fields) {
                 request.fields = specs.fields;
             }
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 6,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -323,12 +324,12 @@ function gsuiteDriveManager(mainSpecs) {
 
     function addPermission(specs) {
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var transferOwnership = specs.transferOwnership;
-            var role = specs.role;
-            var emailAddress = specs.emailAddress;
-            var type = specs.type;
-            var request = {
+            let fileId = specs.fileId;
+            let transferOwnership = specs.transferOwnership;
+            let role = specs.role;
+            let emailAddress = specs.emailAddress;
+            let type = specs.type;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 // permissionId: permissionId,
@@ -345,7 +346,7 @@ function gsuiteDriveManager(mainSpecs) {
                 request.fields = specs.fields;
             }
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 5,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -376,14 +377,13 @@ function gsuiteDriveManager(mainSpecs) {
         });
     }
 
-
     function updatePermission(specs) {
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var permissionId = specs.permissionId;
-            var transferOwnership = specs.transferOwnership;
-            var role = specs.role;
-            var request = {
+            let fileId = specs.fileId;
+            let permissionId = specs.permissionId;
+            let transferOwnership = specs.transferOwnership;
+            let role = specs.role;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 permissionId: permissionId,
@@ -402,7 +402,7 @@ function gsuiteDriveManager(mainSpecs) {
                 return;
             }
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 6,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -434,16 +434,71 @@ function gsuiteDriveManager(mainSpecs) {
         });
     }
 
+    function deletePermission(specs) {
+        return new Promise(function (resolve, reject) {
+            let fileId = specs.fileId;
+            let permissionId = specs.permissionId;
+            let request = {
+                auth: auth,
+                fileId: fileId,
+                permissionId: permissionId
+            };
+
+            if (permissionId === undefined) {
+                reject("missing a permission id");
+                return;
+            }
+
+            let operation = retry.operation({
+                retries: 5,
+                factor: 3,
+                minTimeout: 1 * 1000,
+                maxTimeout: 60 * 1000,
+                randomize: true
+            });
+
+            operation.attempt(function () {
+                service.permissions.delete(request, function (err, response) {
+                    if (err && err.code === 403) {
+                        if (err.message === "The user does not have sufficient permissions for this file.") {
+                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
+                            reject(err);
+                            return;
+                        }
+                    }
+                    if (err && err.code === 404) {
+                        resolve();
+                        return;
+                    }
+                    if (operation.retry(err)) {
+                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
+                        return;
+                    }
+                    if (err) {
+                        reject(operation.mainError());
+                        return;
+                    }
+                    resolve(response);
+                });
+            });
+
+        });
+
+
+
+    }
+    // End Permissions section
+
     function update(specs) {
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var request = {
+            let fileId = specs.fileId;
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 resource: specs.resource
             };
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 5,
                 factor: 3,
                 minTimeout: 1 * 1000,
@@ -482,66 +537,12 @@ function gsuiteDriveManager(mainSpecs) {
 
     }
 
-    function deletePermission(specs) {
-        return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var permissionId = specs.permissionId;
-            var request = {
-                auth: auth,
-                fileId: fileId,
-                permissionId: permissionId
-            };
-
-            if (permissionId === undefined) {
-                reject("missing a permission id");
-                return;
-            }
-
-            var operation = retry.operation({
-                retries: 5,
-                factor: 3,
-                minTimeout: 1 * 1000,
-                maxTimeout: 60 * 1000,
-                randomize: true
-            });
-
-            operation.attempt(function () {
-                service.permissions.delete(request, function (err, response) {
-                    if (err && err.code === 403) {
-                        if (err.message === "The user does not have sufficient permissions for this file.") {
-                            console.log("Error, error %s occured, retry %d", err.code, operation.attempts());
-                            reject(err);
-                            return;
-                        }
-                    }
-                    if (err && err.code === 404) {
-                        resolve();
-                        return;
-                    }
-                    if (operation.retry(err)) {
-                        console.log("Warning, error %s occured, retry %d, %s", err.code, operation.attempts(), err.message);
-                        return;
-                    }
-                    if (err) {
-                        reject(operation.mainError());
-                        return;
-                    }
-                    resolve(response);
-                });
-            });
-
-        });
-
-
-
-    }
-
     function setProperties(specs) {
         // console.log("setProperties " + JSON.stringify(specs));
         return new Promise(function (resolve, reject) {
-            var fileId = specs.fileId;
-            var properties = JSON.parse(specs.properties);
-            var request = {
+            let fileId = specs.fileId;
+            let properties = JSON.parse(specs.properties);
+            let request = {
                 auth: auth,
                 fileId: fileId,
                 resource: {
@@ -550,7 +551,7 @@ function gsuiteDriveManager(mainSpecs) {
                 fields: "id,parents,properties"
             };
 
-            var operation = retry.operation({
+            let operation = retry.operation({
                 retries: 6,
                 factor: 3,
                 minTimeout: 1 * 1000,
